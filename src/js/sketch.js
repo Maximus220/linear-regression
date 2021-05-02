@@ -1,11 +1,20 @@
 var range;
 var data = [];
-var m=1; //Slope
-var b=0; //Poit in y
-const y = function(x){
-  return m*x+b;
-};
 var size = 800;
+
+//For linear regression
+var mreg=1; //Slope
+var breg=0; //Poit in y
+const yreg = function(x){
+  return mreg*x+breg;
+};
+//For gradient descent
+var mgrad=1; //Slope
+var bgrad=0; //Poit in y
+const ygrad = function(x){
+  return mgrad*x+bgrad;
+};
+var lr = 0.05;
 
 function regression(){
   var xsum=0;
@@ -23,8 +32,16 @@ function regression(){
     mnum+=(data[i][0].x-xmean)*(data[i][0].y-ymean);
     mden+=(data[i][0].x-xmean)**2;
   }
-  m=mnum/mden;
-  b=ymean-xmean*m;
+  mreg=mnum/mden;
+  breg=ymean-xmean*mreg;
+}
+
+function gradientDescent(){
+  for(let i=0;i<data.length;i++){
+    let err = data[i][0].y - ygrad(data[i][0].x);
+    mgrad += lr*(err*data[i][0].x);
+    bgrad += lr*err;
+  }
 }
 
 var s1 = function( sketch ) {
@@ -49,14 +66,22 @@ var s1 = function( sketch ) {
     }
     //Draw line
     if(data.length>1){
-      sketch.drawLine();
+      sketch.drawRegLine();
       regression();
+
+      sketch.drawGradLine();
+      gradientDescent();
     }
   }
-  sketch.drawLine=function(){ //Draw the line of y
+  sketch.drawRegLine=function(){ //Draw the line of y
     sketch.stroke(sketch.color(155,0,255));
     //Range Y has to be < range X
-    sketch.line(0, sketch.map(y(range.x), range.x, range.y, sketch.height, 0), sketch.width, sketch.map(y(range.y), range.x, range.y, sketch.height, 0));
+    sketch.line(0, sketch.map(yreg(range.x), range.x, range.y, sketch.height, 0), sketch.width, sketch.map(yreg(range.y), range.x, range.y, sketch.height, 0));
+  }
+  sketch.drawGradLine=function(){ //Draw the line of y
+    sketch.stroke(sketch.color(0,150,255));
+    //Range Y has to be < range X
+    sketch.line(0, sketch.map(ygrad(range.x), range.x, range.y, sketch.height, 0), sketch.width, sketch.map(ygrad(range.y), range.x, range.y, sketch.height, 0));
   }
 };
 
@@ -73,7 +98,7 @@ var s2 = function( sketch ) {
       for(let i=0;i<data.length;i++){
         sketch.noStroke();
         sketch.fill(data[i][1]);
-        let t =sketch.map(y(data[i][0].x) - data[i][0].y, range.x,range.y, 0, sketch.height);
+        let t =sketch.map(yreg(data[i][0].x) - data[i][0].y, range.x,range.y, 0, sketch.height);
         sketch.rect(sketch.map(data[i][0].x, range.x,range.y, 0, sketch.width), sketch.height/2,5,t);
       }
     }
